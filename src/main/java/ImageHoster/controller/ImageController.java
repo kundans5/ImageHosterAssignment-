@@ -1,11 +1,13 @@
 package ImageHoster.controller;
 
+import ImageHoster.model.Comment;
 import ImageHoster.model.Image;
 import ImageHoster.model.Tag;
 import ImageHoster.model.User;
 import ImageHoster.service.ImageService;
 import ImageHoster.service.TagService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -48,8 +50,20 @@ public class ImageController {
     @RequestMapping("/images/{id}/{title}")
     public String showImage(@PathVariable("id") Integer ImageId, Model model) {
         Image image = imageService.getImage(ImageId);
+
         model.addAttribute("image", image);
         model.addAttribute("tags", image.getTags());
+        model.addAttribute("comments", image.getComments());
+        try {
+            List<Tag> tags = image.getTags();
+            if(tags.isEmpty()){
+                tags.add(new Tag());
+            }
+            model.addAttribute("tags", tags);
+        }catch (NullPointerException e){
+            e.printStackTrace();
+            model.addAttribute("image","");
+        }
         return "images/image";
     }
 
@@ -102,6 +116,7 @@ public class ImageController {
             String error = "You are not the owner of the image, thus you cannot edi it";
             model.addAttribute("editError", error);
             model.addAttribute("tags", image.getTags());
+            model.addAttribute("comments", image.getComments());
             return "images/image";
         }
         return "images/edit";
@@ -154,6 +169,7 @@ public class ImageController {
             String error = "You are not the owner, thus cannot delete the image";
             model.addAttribute("deleteError", error);
             model.addAttribute("tags", image.getTags());
+            model.addAttribute("comments", image.getComments());
             return "images/image";
         }
         imageService.deleteImage(imageId);
